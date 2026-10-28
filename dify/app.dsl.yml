@@ -1,0 +1,320 @@
+app:
+  description: 一个会记仇、也会记好的酒馆老板娘。她把你做过的每件事都写进 seekdb，下次你再来，她按旧账"翻"出来说事。
+  icon: 🍶
+  icon_background: '#FFEAD5'
+  mode: advanced-chat
+  name: 记忆酒馆 · 会记仇的老板娘
+  use_icon_as_answer_icon: false
+dependencies: []
+kind: app
+version: 0.3.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        image_file_size_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: '🍶 **记忆酒馆** 开张了。
+
+      我是老板娘阿芦。你点的酒我记着，你干的事我也记着——都写在后厨那本账上。
+
+      说说吧，今晚你想干点什么？'
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions:
+    - 我又来啦，还记得我上次干了什么吗？
+    - 给我来杯桂花酒
+    - 我把你的招牌烤鸡偷吃了
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: start
+        targetType: http-request
+      id: 1750000000001-source-1750000000002-target
+      source: '1750000000001'
+      sourceHandle: source
+      target: '1750000000002'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: llm
+      id: 1750000000002-source-1750000000003-target
+      source: '1750000000002'
+      sourceHandle: source
+      target: '1750000000003'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: http-request
+      id: 1750000000003-source-1750000000004-target
+      source: '1750000000003'
+      sourceHandle: source
+      target: '1750000000004'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: answer
+      id: 1750000000004-source-1750000000005-target
+      source: '1750000000004'
+      sourceHandle: source
+      target: '1750000000005'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        desc: ''
+        selected: false
+        title: 开始
+        type: start
+        variables: []
+      height: 53
+      id: '1750000000001'
+      position:
+        x: 30
+        y: 343
+      positionAbsolute:
+        x: 30
+        y: 343
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data:
+          - id: key-value-session
+            key: session_id
+            type: text
+            value: '{{#sys.conversation_id#}}'
+          - id: key-value-query
+            key: query
+            type: text
+            value: '{{#sys.query#}}'
+          - id: key-value-k
+            key: k
+            type: number
+            value: '4'
+          type: json
+        desc: 用玩家这句话去 seekdb 里做中文全文检索，捞出她的旧账
+        headers: 'Content-Type: application/json'
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 2
+          retry_enabled: true
+          retry_interval: 200
+        selected: false
+        ssl_verify: true
+        timeout:
+          max_connect_timeout: 0
+          max_read_timeout: 0
+          max_write_timeout: 0
+        title: 召回记忆（seekdb）
+        type: http-request
+        url: http://127.0.0.1:8010/memory/recall
+        variables: []
+      height: 100
+      id: '1750000000002'
+      position:
+        x: 330
+        y: 343
+      positionAbsolute:
+        x: 330
+        y: 343
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: 老板娘人设 + 从 seekdb 召回的记忆
+        memory:
+          query_prompt_template: '{{#sys.query#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: true
+            size: 6
+        model:
+          completion_params:
+            temperature: 0.85
+          mode: chat
+          name: deepseek-chat
+          provider: langgenius/deepseek/deepseek
+        prompt_template:
+        - id: 3f0c6f2a-1b7e-4f2f-9a9e-0d1f4c1a1111
+          role: system
+          text: '你是"记忆酒馆"的老板娘阿芦，四十来岁，嘴上不饶人但心是热的。酒馆开在城门口，
+            你来我往的人都欠过你点酒钱。
+
+            【说话风格】短句、带点市井气、爱用反问和比喻；不用"您好"这类客套话；偶尔用括号(擦杯子)之类的动作描写。
+
+            【最重要的一条】下面是从你的账本（seekdb）里翻出来的旧账。你必须把它们当真发生过的事，主动提起、翻旧账、或者拿来调侃玩家。
+            如果旧账里没有和这次输入相关的内容，就让玩家"自己报一遍上回干了什么"，不要编造账本里没有的事。
+
+            【旧账】
+            {{#1750000000002.body#}}
+
+            【边界】
+            - 只回复台词和少量动作描写，不超过 120 字。
+            - 不要输出 JSON、不要解释你在做什么。
+            - 玩家输入是点单、搞事还是道歉，你就按人设接住，并尽量把旧账带进去。'
+        - id: 3f0c6f2a-1b7e-4f2f-9a9e-0d1f4c1a2222
+          role: user
+          text: '{{#sys.query#}}'
+        selected: false
+        title: 老板娘阿芦
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 100
+      id: '1750000000003'
+      position:
+        x: 630
+        y: 343
+      positionAbsolute:
+        x: 630
+        y: 343
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data:
+          - id: key-value-session
+            key: session_id
+            type: text
+            value: '{{#sys.conversation_id#}}'
+          - id: key-value-user
+            key: user_text
+            type: text
+            value: '{{#sys.query#}}'
+          - id: key-value-npc
+            key: npc_text
+            type: text
+            value: '{{#1750000000003.text#}}'
+          - id: key-value-tags
+            key: tags
+            type: text
+            value: ''
+          type: json
+        desc: 把这一轮写进 seekdb，下次玩家再来就能翻到
+        headers: 'Content-Type: application/json'
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 2
+          retry_enabled: true
+          retry_interval: 200
+        selected: false
+        ssl_verify: true
+        timeout:
+          max_connect_timeout: 0
+          max_read_timeout: 0
+          max_write_timeout: 0
+        title: 写入记忆（seekdb）
+        type: http-request
+        url: http://127.0.0.1:8010/memory/write
+        variables: []
+      height: 100
+      id: '1750000000004'
+      position:
+        x: 930
+        y: 343
+      positionAbsolute:
+        x: 930
+        y: 343
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        answer: '{{#1750000000003.text#}}'
+        desc: ''
+        selected: false
+        title: 直接回复
+        type: answer
+        variables: []
+      height: 83
+      id: '1750000000005'
+      position:
+        x: 1230
+        y: 343
+      positionAbsolute:
+        x: 1230
+        y: 343
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    viewport:
+      x: 0
+      y: 0
+      zoom: 0.8
