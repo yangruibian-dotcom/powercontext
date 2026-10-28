@@ -1,0 +1,14 @@
+[
+  {"query": "手冲咖啡水温多少合适", "relevant": ["c01"]},
+  {"query": "云南咖啡豆风味有什么特点", "relevant": ["c02"]},
+  {"query": "意式浓缩萃取时间和比例", "relevant": ["c03"]},
+  {"query": "猫粮蛋白质含量要求", "relevant": ["c05"]},
+  {"query": "猫不爱喝水怎么办", "relevant": ["c06"]},
+  {"query": "海钓什么时候去最好", "relevant": ["c08"]},
+  {"query": "露营防潮垫怎么挑 R 值", "relevant": ["c11"]},
+  {"query": "自行车链条多久保养一次", "relevant": ["c13"]},
+  {"query": "RAG 召回质量怎么评估", "relevant": ["c16"]},
+  {"query": "浏览器里跑模型 WebGPU 还是 WASM", "relevant": ["c17"]},
+  {"query": "INT8 量化体积会降到多少", "relevant": ["c18"]},
+  {"query": "向量数据库怎么选型", "relevant": ["c15"]}
+]

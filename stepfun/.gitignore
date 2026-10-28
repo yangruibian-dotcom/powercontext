@@ -1,0 +1,5 @@
+node_modules/
+web/models/
+data/seekdb/
+.verify.json
+*.log

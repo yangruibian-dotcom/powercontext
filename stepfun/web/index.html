@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>端侧知识库 · 浏览器向量化 + seekdb 混合检索</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <header>
+    <h1>端侧知识库</h1>
+    <p class="sub">文档在你的浏览器里被向量化，向量与全文索引都写进 seekdb，检索也在 seekdb 里完成。</p>
+    <div id="status" class="status">
+      <span class="dot" id="dot"></span>
+      <span id="backendText">推理后端：检测中…</span>
+      <span class="sep">|</span>
+      <span id="modelText">模型：加载中…</span>
+      <span class="sep">|</span>
+      <span id="dbText">seekdb：检测中…</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>1. 导入语料</h2>
+      <div class="row">
+        <button id="btnLoadCorpus">载入示例语料</button>
+        <button id="btnImport" disabled>向量化并写入 seekdb</button>
+        <button id="btnReset" class="ghost">清空知识库</button>
+      </div>
+      <textarea id="customText" rows="4" placeholder="也可以直接粘贴自己的文本，每段以空行分隔"></textarea>
+      <div class="progress"><div id="bar"></div></div>
+      <pre id="importLog" class="log"></pre>
+    </section>
+
+    <section class="card">
+      <h2>2. 检索</h2>
+      <div class="row">
+        <input id="queryInput" type="text" placeholder="例如：手冲咖啡水温多少合适？" />
+        <select id="mode">
+          <option value="hybrid">混合检索（向量 + 全文，seekdb RRF）</option>
+          <option value="vector">仅向量</option>
+          <option value="fulltext">仅全文</option>
+        </select>
+        <button id="btnSearch" disabled>检索</button>
+      </div>
+      <div id="timing" class="timing"></div>
+      <ol id="results" class="results"></ol>
+    </section>
+
+    <section class="card">
+      <h2>3. 基准测试（把结果填进 TECH_NOTE.md）</h2>
+      <div class="row">
+        <label>重复次数 <input id="benchRepeats" type="number" value="5" min="1" max="20" /></label>
+        <button id="btnBench" disabled>跑基准</button>
+        <button id="btnExport" class="ghost" disabled>导出 Markdown</button>
+      </div>
+      <pre id="benchLog" class="log"></pre>
+    </section>
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
