@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href="data:," />
+<title>科研资料混检助手 · 用 seekdb 做向量 + 全文混合检索</title>
+<style>
+  :root { --bg:#0b0f14; --card:#141a22; --line:#222b36; --fg:#e8eef6; --muted:#8fa0b6; --accent:#4ea1ff; }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(180deg,#0b0f14,#0d131a 60%,#0b0f14);color:var(--fg);
+       font:16px/1.75 -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+  .wrap{max-width:960px;margin:0 auto;padding:64px 24px 96px}
+  .hero h1{font-size:40px;margin:0 0 12px;letter-spacing:-.5px}
+  .hero p{color:var(--muted);font-size:18px;margin:0 0 24px}
+  .badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:32px}
+  .badge{font-size:13px;padding:5px 12px;border:1px solid var(--line);border-radius:999px;color:var(--muted);background:var(--card)}
+  h2{font-size:22px;margin:56px 0 16px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .card h3{margin:0 0 8px;font-size:16px}
+  .card p{margin:0;color:var(--muted);font-size:14px}
+  code,pre{font-family:ui-monospace,Consolas,monospace}
+  pre{background:#0a0e13;border:1px solid var(--line);border-radius:12px;padding:16px;overflow:auto;font-size:13px;color:#c9d6e6}
+  .flow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;color:var(--muted);font-size:14px;margin:16px 0}
+  .flow span{padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg)}
+  .flow i{color:var(--accent);font-style:normal}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left}
+  th{color:var(--muted);font-weight:600}
+  .shots{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .shot{border:1px dashed var(--line);border-radius:12px;padding:28px;text-align:center;color:var(--muted);background:var(--card);font-size:13px}
+  .links a{color:var(--accent);text-decoration:none}
+  .links a:hover{text-decoration:underline}
+  footer{margin-top:72px;color:#5d6b7d;font-size:13px;border-top:1px solid var(--line);padding-top:20px}
+  @media (max-width:640px){.shots{grid-template-columns:1fr}.hero h1{font-size:30px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section class="hero">
+    <h1>科研资料混检助手</h1>
+    <p>论文摘要、课程笔记、实验记录都扔进来。一句自然语言问题，直接定位到相关段落，并告诉你出处在哪一页、哪一段。</p>
+    <div class="badges">
+      <span class="badge">Qoder 开发</span>
+      <span class="badge">seekdb 向量 + 全文 + 标签混合检索</span>
+      <span class="badge">本地向量化，无云端 API</span>
+      <span class="badge">Node.js · 单条 SQL 完成融合</span>
+    </div>
+  </section>
+
+  <h2>解决的问题</h2>
+  <div class="grid">
+    <div class="card"><h3>「明明写过，就是翻不到」</h3><p>资料散在下载文件夹、笔记 App 和实验记录表里，关键词想不起来就等于丢失。</p></div>
+    <div class="card"><h3>关键词搜不到同义表述</h3><p>「融合策略」和「怎么把两路结果合起来」是同一个意思，纯关键词检索永远搜不到。</p></div>
+    <div class="card"><h3>纯语义检索会漏掉术语</h3><p>「HNSW」「nDCG」这类专有名词，语义模型容易和相邻话题混淆，需要精确匹配兜底。</p></div>
+  </div>
+  <p style="color:var(--muted);font-size:15px;margin-top:16px">
+    所以这个工具同时跑两路召回：<b>全文</b>负责精确术语，<b>向量</b>负责同义改写，再用<b>标签</b>把范围收窄，
+    最后在数据库里用 RRF 融合排序。
+  </p>
+
+  <h2>核心功能</h2>
+  <div class="grid">
+    <div class="card"><h3>批量导入</h3><p>示例资料一键载入，或直接粘贴自己的文本；空行分段，首行当标题。</p></div>
+    <div class="card"><h3>本地向量化</h3><p>all-MiniLM-L6-v2（384 维，INT8）在本机 CPU 运行，资料不出本机。</p></div>
+    <div class="card"><h3>混合检索</h3><p>一条 SQL 内完成两路召回 + RRF 融合，不用把结果拉回应用层拼。</p></div>
+    <div class="card"><h3>标签过滤</h3><p>先用结构化条件缩小候选集，再做排序，避免过滤后结果不足。</p></div>
+    <div class="card"><h3>出处定位</h3><p>每条结果带有 source 字段（论文 · 章节 / 笔记日期），点回原文位置。</p></div>
+    <div class="card"><h3>可解释排序</h3><p>显示「全文#n」「向量#n」两路各自排名，能看出它为什么被排上来。</p></div>
+  </div>
+
+  <h2>检索流程</h2>
+  <div class="flow">
+    <span>你的问题</span><i>→</i><span>本地向量化</span><i>→</i>
+    <span>seekdb：全文召回</span><i>+</i><span>seekdb：向量召回</span><i>→</i>
+    <span>RRF 融合排序</span><i>→</i><span>带出处的结果</span>
+  </div>
+
+  <h2>实测效果</h2>
+  <table>
+    <tr><th>检索模式</th><th>Recall@5</th><th>检索耗时（中位）</th></tr>
+    <tr><td>仅向量</td><td>0.800</td><td>1 ms</td></tr>
+    <tr><td>仅全文</td><td>1.000</td><td>2 ms</td></tr>
+    <tr><td><b>混合（向量 + 全文 + 标签）</b></td><td><b>1.000</b></td><td><b>11 ms</b></td></tr>
+  </table>
+  <p style="color:var(--muted);font-size:13px;margin-top:10px">
+    20 条资料 / 10 条评测查询；纯向量漏掉的 2 条被全文补回，融合后为 1.000。
+  </p>
+
+  <h2>界面截图</h2>
+  <div class="shots">
+    <div class="shot">导入页：载入示例资料 → 向量化 → 写入 seekdb</div>
+    <div class="shot">检索页：结果列表 + 出处 + 两路排名</div>
+  </div>
+  <p style="color:var(--muted);font-size:13px;margin-top:10px">（运行后截图替换此处占位）</p>
+
+  <h2>怎么体验</h2>
+  <pre>git clone https://github.com/yangruibian-dotcom/powercontext.git
+cd powercontext &amp;&amp; git checkout 2026-competition-ecosystem
+cd qoder
+npm install
+npm run fetch-model      # 下载 INT8 模型（约 22 MB）
+npm start                # 打开 http://localhost:5273</pre>
+
+  <h2>技术栈</h2>
+  <div class="grid">
+    <div class="card"><h3>seekdb（核心）</h3><p>嵌入式启动，一张表同时建 <code>VECTOR(384)</code>、<code>FULLTEXT(ngram)</code> 与普通列，混合检索用一条 SQL 完成。</p></div>
+    <div class="card"><h3>Node.js</h3><p>零框架 HTTP 服务 + 静态页面；<code>@oceanbase/seekdb-node</code> 管理嵌入式实例，<code>mysql2</code> 走 MySQL 协议。</p></div>
+    <div class="card"><h3>Transformers.js</h3><p>在 Node 侧本地加载 all-MiniLM-L6-v2 INT8，做批量向量化，不访问任何云端推理接口。</p></div>
+  </div>
+
+  <h2>链接</h2>
+  <p class="links">
+    代码仓库：<a href="https://github.com/yangruibian-dotcom/powercontext/tree/2026-competition-ecosystem/qoder">github.com/yangruibian-dotcom/powercontext · qoder/</a><br />
+    依赖项目：<a href="https://github.com/oceanbase/seekdb">oceanbase/seekdb</a> ·
+    <a href="https://huggingface.co/Xenova/all-MiniLM-L6-v2">Xenova/all-MiniLM-L6-v2</a>
+  </p>
+
+  <footer>
+    由 Qoder 辅助开发 · 数据层为 OceanBase seekdb · 向量化在本地完成，不上传资料内容
+  </footer>
+</div>
+</body>
+</html>

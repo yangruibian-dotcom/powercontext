@@ -1,0 +1,20 @@
+{
+  "name": "research-kb",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "科研资料混检助手：seekdb 向量 + 全文 + 标签混合检索",
+  "scripts": {
+    "start": "node server/server.mjs",
+    "fetch-model": "node scripts/fetch-model.mjs",
+    "verify": "node scripts/verify.mjs"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^4.3.2",
+    "@oceanbase/seekdb-node": "^1.4.0",
+    "mysql2": "^3.24.6"
+  },
+  "allowScripts": {
+    "onnxruntime-node@1.30.0": true
+  }
+}

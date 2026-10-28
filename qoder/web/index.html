@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:," />
+  <title>科研资料混检助手</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <header>
+    <h1>科研资料混检助手</h1>
+    <p class="sub">论文摘要、课程笔记、实验记录导入本地 seekdb，按「语义 + 关键词 + 标签」混合检索，直接给出处。</p>
+    <div class="status" id="status">
+      <span class="dot" id="dot"></span>
+      <span id="dbText">seekdb：检测中…</span>
+      <span class="sep">|</span>
+      <span id="modelText">向量模型：本地 all-MiniLM-L6-v2</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>1. 导入资料</h2>
+      <div class="row">
+        <button id="btnCorpus">载入示例资料（20 条）</button>
+        <button id="btnImport" disabled>向量化并写入 seekdb</button>
+        <button id="btnReset" class="ghost">清空</button>
+      </div>
+      <textarea id="paste" rows="4" placeholder="也可以粘贴自己的资料：每段用空行分隔，第一行当标题"></textarea>
+      <pre id="importLog" class="log"></pre>
+    </section>
+
+    <section class="card">
+      <h2>2. 检索</h2>
+      <div class="row">
+        <input id="q" type="text" placeholder="例如：中文全文检索为什么搜不到" />
+        <input id="tag" type="text" class="tag" placeholder="标签过滤（可选，如 检索）" />
+        <select id="mode">
+          <option value="hybrid">混合（向量 + 全文 + 标签）</option>
+          <option value="vector">仅向量</option>
+          <option value="fulltext">仅全文</option>
+        </select>
+        <button id="btnSearch" disabled>检索</button>
+      </div>
+      <div id="timing" class="timing"></div>
+      <ol id="results" class="results"></ol>
+    </section>
+  </main>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

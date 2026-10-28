@@ -1,0 +1,12 @@
+[
+  {"query": "混合检索怎么融合两路结果", "relevant": ["p01"], "tags": ""},
+  {"query": "中文全文检索为什么搜不到", "relevant": ["p03"], "tags": ""},
+  {"query": "HNSW 的 ef_search 影响什么", "relevant": ["p02"], "tags": ""},
+  {"query": "INT8 量化后精度掉多少", "relevant": ["p05"], "tags": ""},
+  {"query": "怎么写实验记录才方便复现", "relevant": ["p07"], "tags": ""},
+  {"query": "组会汇报时间怎么分配", "relevant": ["p09"], "tags": ""},
+  {"query": "Recall@K 和 nDCG 有什么区别", "relevant": ["p11"], "tags": ""},
+  {"query": "标签体系应该怎么设计", "relevant": ["p18"], "tags": ""},
+  {"query": "知识库增量更新要注意什么", "relevant": ["p15"], "tags": ""},
+  {"query": "本地部署和云端 API 怎么选", "relevant": ["p19"], "tags": ""}
+]
