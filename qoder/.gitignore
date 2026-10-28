@@ -2,3 +2,4 @@ node_modules/
 models/
 data/seekdb/
 *.log
+.DS_Store

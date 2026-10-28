@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "description": "科研资料混检助手：seekdb 向量 + 全文 + 标签混合检索",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "start": "node server/server.mjs",
     "fetch-model": "node scripts/fetch-model.mjs",
