@@ -27,11 +27,11 @@
 
 | 项 | 版本 / 说明 |
 |---|---|
-| Dify | **1.x（DSL version 0.3.0，advanced-chat / Chatflow）**，社区版即可 |
-| 模型 | DeepSeek（`langgenius/deepseek/deepseek`，模型 `deepseek-chat`）。DSL 里写的是占位配置，**API Key 不入库**，导入后在 Dify「设置 → 模型供应商」里填自己的 Key；也可以直接用别的模型，在 LLM 节点重选即可 |
+| Dify | **1.18.0 实测通过**（自托管 docker compose；DSL 导入后在 `advanced-chat` / Chatflow 下运行）。DSL 声明的是 0.3.0，导入 1.18 会自动升级 |
+| 模型 | **MiniMax**（`langgenius/minimax/minimax`，模型 `minimax-m3`）。需在 Dify「设置 → 模型供应商 → MiniMax」填入自己的 API Key，**Key 不入库**；也可以换成 DeepSeek 等其它供应商，在 LLM 节点重选模型即可 |
 | seekdb | `oceanbase/seekdb:latest`（本文验证版本 `seekdb-v1.4.0.0`），Docker 运行，默认端口 2881 |
 | 后端 | Python 3.10+，`fastapi` + `uvicorn` + `pymysql`（见 [`backend/requirements.txt`](backend/requirements.txt)） |
-| 网络 | Dify 与后端需互通；若 Dify 跑在容器里访问宿主机后端，把 DSL 里 `http://127.0.0.1:8010` 换成 `http://host.docker.internal:8010`（Linux 下用宿主机内网 IP） |
+| 网络 | DSL 里两个 HTTP 节点默认指向 `http://memory-backend:8010`（与 Dify 同一条 docker 网络的后端容器）。若把后端跑在宿主机上，改成 `http://host.docker.internal:8010`（Linux 引擎需给 api 容器加 `extra_hosts: host.docker.internal:host-gateway`）。 |
 
 ## 四、从零跑起来
 
@@ -97,14 +97,54 @@ curl http://127.0.0.1:8010/health
 
 见 [`validation/验证样例.md`](validation/验证样例.md)：包含初始状态、输入顺序、预期表现，以及**本地实测输出**（seekdb 表结构、全文检索打分、接口返回）。
 
-## 七、已知限制
+## 七、Dify 实测记录（2026-10-29，本机真跑）
 
-- **本地验证范围**：本仓库的 seekdb + 后端 + 全文检索是**实际跑通**的（证据见验证样例）；Dify DSL 是按 Dify 1.x（DSL 0.3.0）结构编写的，**未在作者的 Dify 实例里导入验证**（参赛环境未装 Dify）。导入若提示模型不可用，属正常现象，按第 4 步重选模型即可。
+环境：Dify **1.18.0** 自托管（docker compose，`/root/dify-run`）+ MiniMax 供应商插件 `langgenius/minimax:0.0.29` + 模型 `minimax-m3` + seekdb 容器 + 后端容器 `memory-backend`。
+
+复现步骤（全部已执行成功）：
+
+```bash
+# 1. 起 Dify（官方 docker/docker-compose.yaml + .env）
+docker compose up -d
+
+# 2. 起 seekdb 并建表
+docker run -d --name seekdb -p 2881:2881 oceanbase/seekdb:latest
+python scripts/init_schema.py          # 建 tavern.memory（含 ngram 全文索引）
+
+# 3. 后端以容器方式接入同一条网络（DSL 里用的就是这个名字）
+docker build -t memory-backend:1 backend/
+docker run -d --name memory-backend --network dify_default \
+  -e SEEKDB_HOST=seekdb -p 8010:8010 memory-backend:1
+
+# 4. 在 Dify 里导入 app.dsl.yml → 发布 → 建 API Key
+#    然后调用会话接口（两轮，同一 conversation）
+curl -X POST http://127.0.0.1/v1/chat-messages \
+  -H "Authorization: Bearer app-xxx" -H "Content-Type: application/json" \
+  -d '{"inputs":{},"query":"老板娘，我上回赊了三壶酒，还顺走你一把瓜子。","response_mode":"blocking","user":"reviewer-01","conversation_id":""}'
+```
+
+**实际运行结果**（导出方式：`GET /console/api/apps/{app_id}/workflow-runs` + `/node-executions`，原始 JSON 见 [`validation/dify-run-evidence.md`](validation/dify-run-evidence.md)）：
+
+| run | 状态 | 节点链路 | 总耗时 |
+|---|---|---|---|
+| `07b0b908…` | succeeded | 开始 → **召回记忆（seekdb）** → 老板娘阿芦(LLM) → **写入记忆（seekdb）** → 直接回复 | 1.22 s / 466 tokens |
+| `09d74342…` | succeeded | 同上 | 14.48 s / 767 tokens |
+
+第二轮（同一 conversation）老板娘直接翻出「三壶酒、一把瓜子」，说明 seekdb 里的记忆被召回并进了 prompt。
+
+导入过程中实际修掉的兼容问题（都已改在仓库的 `app.dsl.yml` 里）：
+
+1. HTTP 节点 body 的 `type: json` 多字段写法在 1.18 会报 `json body type should have exactly one item` → 改成 `raw-text` 单条 JSON 字符串。
+2. body 字段 `type: number` 在 1.18 已不支持（只允许 `text` / `file`）→ 改成 `text`。
+3. 模型引用从 `langgenius/deepseek/deepseek` 换成实跑过的 `langgenius/minimax/minimax` + `minimax-m3`。
+
+## 八、已知限制
+
 - 中文单字（如"酒"）在 `ngram_token_size=2` 下不命中，建议查询词 ≥2 字；接口已做"无命中退回最近记忆"兜底。
 - 记忆只增不删（除 reset），长期会话会变长，可自行加清理策略。
 - 后端没做鉴权，仅适合本机/内网演示。
 
-## 八、数据与素材来源
+## 九、数据与素材来源
 
 - 表结构与接口为本作品原创；
 - 文本示例（偷吃烤鸡、假蜘蛛等）为原创虚构内容，不含真实用户数据；

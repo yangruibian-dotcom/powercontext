@@ -136,20 +136,10 @@ workflow:
           config: null
           type: no-auth
         body:
+          type: raw-text
           data:
-          - id: key-value-session
-            key: session_id
-            type: text
-            value: '{{#sys.conversation_id#}}'
-          - id: key-value-query
-            key: query
-            type: text
-            value: '{{#sys.query#}}'
-          - id: key-value-k
-            key: k
-            type: number
-            value: '4'
-          type: json
+          - type: text
+            value: '{"session_id":"{{#sys.conversation_id#}}","query":"{{#sys.query#}}","k":4}'
         desc: 用玩家这句话去 seekdb 里做中文全文检索，捞出她的旧账
         headers: 'Content-Type: application/json'
         method: post
@@ -166,7 +156,7 @@ workflow:
           max_write_timeout: 0
         title: 召回记忆（seekdb）
         type: http-request
-        url: http://127.0.0.1:8010/memory/recall
+        url: http://memory-backend:8010/memory/recall
         variables: []
       height: 100
       id: '1750000000002'
@@ -198,8 +188,8 @@ workflow:
           completion_params:
             temperature: 0.85
           mode: chat
-          name: deepseek-chat
-          provider: langgenius/deepseek/deepseek
+          name: minimax-m3
+          provider: langgenius/minimax/minimax
         prompt_template:
         - id: 3f0c6f2a-1b7e-4f2f-9a9e-0d1f4c1a1111
           role: system
@@ -245,24 +235,10 @@ workflow:
           config: null
           type: no-auth
         body:
+          type: raw-text
           data:
-          - id: key-value-session
-            key: session_id
-            type: text
-            value: '{{#sys.conversation_id#}}'
-          - id: key-value-user
-            key: user_text
-            type: text
-            value: '{{#sys.query#}}'
-          - id: key-value-npc
-            key: npc_text
-            type: text
-            value: '{{#1750000000003.text#}}'
-          - id: key-value-tags
-            key: tags
-            type: text
-            value: ''
-          type: json
+          - type: text
+            value: '{"session_id":"{{#sys.conversation_id#}}","user_text":"{{#sys.query#}}","npc_text":"{{#1750000000003.text#}}","tags":""}'
         desc: 把这一轮写进 seekdb，下次玩家再来就能翻到
         headers: 'Content-Type: application/json'
         method: post
@@ -279,7 +255,7 @@ workflow:
           max_write_timeout: 0
         title: 写入记忆（seekdb）
         type: http-request
-        url: http://127.0.0.1:8010/memory/write
+        url: http://memory-backend:8010/memory/write
         variables: []
       height: 100
       id: '1750000000004'
